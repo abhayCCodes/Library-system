@@ -219,7 +219,7 @@ button:hover {
     -webkit-text-fill-color: transparent; 
     
    
-    animation: textGradientShift 8s ease infinite;
+    animation: textGradientShift 4s ease infinite;
 }
 
 @keyframes textGradientShift {
