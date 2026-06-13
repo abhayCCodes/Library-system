@@ -98,8 +98,26 @@ button:hover {
     padding: 6px 12px;
     font-size: 0.85rem;
     margin-left: 5px;
+    color: #11111b; /* Dark text for high contrast on light backgrounds */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.search-section {
+    margin-bottom: 15px;
+}
+
+#search-input {
+    width: 100%;
+    box-sizing: border-box; /* Prevents input padding from stretching the box layout */
+    border-color: var(--accent); /* Gives it a subtle purple glow */
 }
 
 .btn-borrow { background: #89b4fa; }
 .btn-return { background: #fab387; }
-.btn-delete { background: var(--danger); }
+.btn-delete { 
+    background: var(--danger);
+    color: #fff; 
+}

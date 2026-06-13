@@ -49,11 +49,18 @@ const myLibrary = new Library("Central Hub");
 // 2. UI INTERACTION LAYER (DOM Manipulation)
 // ==========================================
 
+// ==========================================
+// 2. UI INTERACTION LAYER (DOM Manipulation)
+// ==========================================
+
 // Grab DOM elements
 const titleInput = document.getElementById('book-title');
 const authorInput = document.getElementById('book-author');
 const addBtn = document.getElementById('add-btn');
 const booksList = document.getElementById('books-list');
+
+// NEW: Grab the search input element
+const searchInput = document.getElementById('search-input');
 
 const statTotal = document.getElementById('stat-total');
 const statAvailable = document.getElementById('stat-available');
@@ -64,8 +71,20 @@ function renderUI() {
     // Clear old list items to prevent duplication
     booksList.innerHTML = '';
 
-    // Loop through current array data and generate HTML strings
-    myLibrary.books.forEach(book => {
+    // NEW: Get the current search text and convert to lowercase for case-insensitivity
+    const searchQuery = searchInput.value.toLowerCase().trim();
+
+    // NEW: Filter the books array down *before* looping through it to build cards
+    const filteredBooks = myLibrary.books.filter(book => {
+        const matchesTitle = book.title.toLowerCase().includes(searchQuery);
+        const matchesAuthor = book.author.toLowerCase().includes(searchQuery);
+        
+        // Keep the book if either the title OR the author contains the search text
+        return matchesTitle || matchesAuthor;
+    });
+
+    // Loop through the FILTERED array data and generate HTML strings
+    filteredBooks.forEach(book => {
         const li = document.createElement('li');
         li.className = `book-item ${book.isAvailable ? '' : 'borrowed'}`;
         
@@ -84,7 +103,7 @@ function renderUI() {
         booksList.appendChild(li);
     });
 
-    // Update Statistics counters
+    // Update Statistics counters (Always based on the total library array, not just filtered results!)
     const stats = myLibrary.getStatistics();
     statTotal.textContent = stats.total;
     statAvailable.textContent = stats.available;
@@ -107,6 +126,11 @@ addBtn.addEventListener('click', () => {
     titleInput.value = '';
     authorInput.value = '';
 
+    renderUI();
+});
+
+// NEW: Event listener to re-render the list every single time the user presses a key in the search box
+searchInput.addEventListener('input', () => {
     renderUI();
 });
 
