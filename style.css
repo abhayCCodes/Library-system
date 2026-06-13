@@ -187,13 +187,13 @@ button:hover {
 }
 
 .title-box {
-    background: #1e1e2e;
-    border: 2px solid #313244;
+    background: #2727a3;
+    border: 2px solid #ffffff;
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 25px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(255, 0, 170, 0);
 }
 
 
@@ -205,11 +205,11 @@ button:hover {
 
     background: linear-gradient(
         45deg, 
-        #cba6f7, 
-        #89b4fa, 
-        #a6e3a1, 
-        #f38ba8, 
-        #cba6f7  
+        #f66f6f, 
+        #f577f1, 
+        #84ff78, 
+        #fbf776, 
+        #ffffff  
     );
     background-size: 400% 400%; 
     
