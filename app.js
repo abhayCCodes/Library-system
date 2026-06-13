@@ -1,70 +1,71 @@
+// 1. BACKEND API ROUTE CONFIGURATION
 
-// 1. CORE LOGIC (Classes)
+const API_URL = 'http://localhost:5000/api/books';
 
-class Book {
-    constructor(title, author, id = null, isAvailable = true, borrowDuration = null) {
-        this.id = id || Date.now() + Math.random().toString(36).substr(2, 5);
-        this.title = title;
-        this.author = author;
-        this.isAvailable = isAvailable; 
-        this.borrowDuration = borrowDuration; // Tracks custom days assigned
-    }
-}
-
-class Library {
-    constructor(name = "My Library") {
-        this.name = name;
-        this.books = this.loadFromLocalStorage(); 
-    }
-    
-    addBook(title, author) {
-        const newBook = new Book(title, author);
-        this.books.push(newBook);
-        this.saveToLocalStorage(); 
-        return newBook;
-    }
-    
-    removeBook(id) {
-        this.books = this.books.filter(book => book.id !== id);
-        this.saveToLocalStorage(); 
-    }
-    
-    toggleAvailability(id, days = null) {
-        const book = this.books.find(book => book.id === id);
-        if (book) {
-            book.isAvailable = !book.isAvailable;
-            // Assign or wipe the borrow timeline parameter
-            book.borrowDuration = book.isAvailable ? null : days;
-            this.saveToLocalStorage(); 
-        }
-    }
-
-    getStatistics() {
-        const total = this.books.length;
-        const available = this.books.filter(b => b.isAvailable).length;
-        const borrowed = total - available;
-        return { total, available, borrowed };
-    }
-
-    saveToLocalStorage() {
-        localStorage.setItem('library_books', JSON.stringify(this.books));
-    }
-
-    loadFromLocalStorage() {
-        const savedData = localStorage.getItem('library_books');
-        if (!savedData) return [];
-        const rawBooks = JSON.parse(savedData);
-        return rawBooks.map(b => new Book(b.title, b.author, b.id, b.isAvailable, b.borrowDuration));
-    }
-}
-
-const myLibrary = new Library("Central Hub");
-
-// 2. Temporary variables to remember which book card the user clicked on
-
+// Global runtime array to store books fetched from the database
+let backendBooksMemory = [];
 let activeBookIdForDelete = null;
 let activeBookIdForBorrow = null;
 
+
+// 2. FULL-STACK SERVER CONNECTION ENGINE (fetch)
+
+// 1. GET: Fetch data records right from the cloud server
+async function loadBooksFromDatabase() {
+    try {
+        const response = await fetch(API_URL);
+        backendBooksMemory = await response.json();
+        renderUI();
+    } catch (err) {
+        console.error("❌ Failed to fetch data from backend server:", err);
+    }
+}
+
+// 2. POST: Send a new entry package to the backend API
+async function addBookToDatabase(title, author) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, author })
+        });
+        if (response.ok) {
+            await loadBooksFromDatabase(); // Refresh memory layer
+        }
+    } catch (err) {
+        console.error("❌ Error adding book to server:", err);
+    }
+}
+
+// 3. PUT: Update availability and timeline parameters on the backend
+async function toggleBookStatusInDatabase(id, days = null) {
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ days })
+        });
+        if (response.ok) {
+            await loadBooksFromDatabase();
+        }
+    } catch (err) {
+        console.error("❌ Error updating status on server:", err);
+    }
+}
+
+// 4. DELETE: Erase data records completely from the backend server
+async function deleteBookFromDatabase(id) {
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            await loadBooksFromDatabase();
+        }
+    } catch (err) {
+        console.error("❌ Error deleting book from server:", err);
+    }
+}
 
 // 3. UI INTERACTION LAYER (DOM Manipulation)
 
@@ -82,7 +83,7 @@ function renderUI() {
     booksList.innerHTML = '';
     const searchQuery = searchInput.value.toLowerCase().trim();
 
-    const filteredBooks = myLibrary.books.filter(book => {
+    const filteredBooks = backendBooksMemory.filter(book => {
         const matchesTitle = book.title.toLowerCase().includes(searchQuery);
         const matchesAuthor = book.author.toLowerCase().includes(searchQuery);
         return matchesTitle || matchesAuthor;
@@ -92,7 +93,8 @@ function renderUI() {
         const li = document.createElement('li');
         li.className = `book-item ${book.isAvailable ? '' : 'borrowed'}`;
         
-        // Show duration description if book is borrowed
+        // Match the database structure property names (Mongoose generates an "_id" field)
+        const bookId = book._id || book.id; 
         const durationText = book.borrowDuration ? `<span style="color: #fab387; font-size: 0.8rem;">⏳ Due in ${book.borrowDuration} days</span>` : '';
 
         li.innerHTML = `
@@ -102,19 +104,23 @@ function renderUI() {
                 ${durationText}
             </div>
             <div class="book-actions">
-                <button class="${book.isAvailable ? 'btn-borrow' : 'btn-return'}" onclick="handleStatus('${book.id}', ${book.isAvailable})">
+                <button class="${book.isAvailable ? 'btn-borrow' : 'btn-return'}" onclick="handleStatus('${bookId}', ${book.isAvailable})">
                     ${book.isAvailable ? 'Borrow' : 'Return'}
                 </button>
-                <button class="btn-delete" onclick="handleDelete('${book.id}')">Delete</button>
+                <button class="btn-delete" onclick="handleDelete('${bookId}')">Delete</button>
             </div>
         `;
         booksList.appendChild(li);
     });
 
-    const stats = myLibrary.getStatistics();
-    statTotal.textContent = stats.total;
-    statAvailable.textContent = stats.available;
-    statBorrowed.textContent = stats.borrowed;
+    // Generate accurate statistics dashboards
+    const total = backendBooksMemory.length;
+    const available = backendBooksMemory.filter(b => b.isAvailable).length;
+    const borrowed = total - available;
+
+    statTotal.textContent = total;
+    statAvailable.textContent = available;
+    statBorrowed.textContent = borrowed;
 }
 
 addBtn.addEventListener('click', () => {
@@ -126,62 +132,50 @@ addBtn.addEventListener('click', () => {
         return;
     }
 
-    myLibrary.addBook(title, author);
+    addBookToDatabase(title, author);
     titleInput.value = '';
     authorInput.value = '';
-    renderUI();
 });
 
 searchInput.addEventListener('input', () => {
     renderUI();
 });
 
-
 // MODAL ROUTING CONTROLLERS
 
-// Global Modal Utility Closers
 window.closeModal = (modalId) => {
     document.getElementById(modalId).classList.remove('active');
 };
 
-// Intercept Delete Click Event
 window.handleDelete = (id) => {
-    activeBookIdForDelete = id; // Store ID temporarily
-    document.getElementById('delete-modal').classList.add('active'); // Pop modal open
+    activeBookIdForDelete = id;
+    document.getElementById('delete-modal').classList.add('active');
 };
 
-// Handle Confirmation Click inside Delete Modal
 document.getElementById('confirm-delete-btn').addEventListener('click', () => {
     if (activeBookIdForDelete) {
-        myLibrary.removeBook(activeBookIdForDelete);
+        deleteBookFromDatabase(activeBookIdForDelete);
         activeBookIdForDelete = null;
         closeModal('delete-modal');
-        renderUI();
     }
 });
 
-// Intercept Borrow/Return Click Event
 window.handleStatus = (id, isCurrentAvailable) => {
     if (isCurrentAvailable) {
-        // If it's available, show options popup for duration
         activeBookIdForBorrow = id;
         document.getElementById('borrow-modal').classList.add('active');
     } else {
-        // If returning it, process status toggle instantly without asking questions
-        myLibrary.toggleAvailability(id);
-        renderUI();
+        toggleBookStatusInDatabase(id);
     }
 };
 
-// Handle Duration Button Select Event
 window.submitBorrowDuration = (days) => {
     if (activeBookIdForBorrow) {
-        myLibrary.toggleAvailability(activeBookIdForBorrow, days);
+        toggleBookStatusInDatabase(activeBookIdForBorrow, days);
         activeBookIdForBorrow = null;
         closeModal('borrow-modal');
-        renderUI();
     }
 };
 
-// Initial setup engine run
-renderUI();
+// Fire engine sequence directly on initial window load mapping
+loadBooksFromDatabase();
