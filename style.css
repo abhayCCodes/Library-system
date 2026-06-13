@@ -186,6 +186,54 @@ button:hover {
     filter: brightness(1.15);
 }
 
+.title-box {
+    background: #1e1e2e;
+    border: 2px solid #313244;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+
+.animated-title {
+    font-size: 2.5rem;
+    margin: 0;
+    font-weight: 800;
+    
+
+    background: linear-gradient(
+        45deg, 
+        #cba6f7, 
+        #89b4fa, 
+        #a6e3a1, 
+        #f38ba8, 
+        #cba6f7  
+    );
+    background-size: 400% 400%; 
+    
+   
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent; 
+    
+   
+    animation: textGradientShift 8s ease infinite;
+}
+
+@keyframes textGradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
 .btn-borrow { background: #89b4fa; }
 .btn-return { background: #fab387; }
 .btn-delete { 
