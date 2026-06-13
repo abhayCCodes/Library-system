@@ -2,12 +2,12 @@
 // 1. CORE LOGIC (Classes)
 
 class Book {
-    constructor(title, author, id = null, isAvailable = true) {
-        
+    constructor(title, author, id = null, isAvailable = true, borrowDuration = null) {
         this.id = id || Date.now() + Math.random().toString(36).substr(2, 5);
         this.title = title;
         this.author = author;
         this.isAvailable = isAvailable; 
+        this.borrowDuration = borrowDuration; // Tracks custom days assigned
     }
 }
 
@@ -29,10 +29,12 @@ class Library {
         this.saveToLocalStorage(); 
     }
     
-    toggleAvailability(id) {
+    toggleAvailability(id, days = null) {
         const book = this.books.find(book => book.id === id);
         if (book) {
             book.isAvailable = !book.isAvailable;
+            // Assign or wipe the borrow timeline parameter
+            book.borrowDuration = book.isAvailable ? null : days;
             this.saveToLocalStorage(); 
         }
     }
@@ -44,26 +46,27 @@ class Library {
         return { total, available, borrowed };
     }
 
-    
     saveToLocalStorage() {
         localStorage.setItem('library_books', JSON.stringify(this.books));
     }
 
-    
     loadFromLocalStorage() {
         const savedData = localStorage.getItem('library_books');
         if (!savedData) return [];
-
         const rawBooks = JSON.parse(savedData);
-        
-        return rawBooks.map(b => new Book(b.title, b.author, b.id, b.isAvailable));
+        return rawBooks.map(b => new Book(b.title, b.author, b.id, b.isAvailable, b.borrowDuration));
     }
 }
 
 const myLibrary = new Library("Central Hub");
 
+// 2. Temporary variables to remember which book card the user clicked on
 
-// 2. UI INTERACTION LAYER (DOM Manipulation)
+let activeBookIdForDelete = null;
+let activeBookIdForBorrow = null;
+
+
+// 3. UI INTERACTION LAYER (DOM Manipulation)
 
 const titleInput = document.getElementById('book-title');
 const authorInput = document.getElementById('book-author');
@@ -89,13 +92,17 @@ function renderUI() {
         const li = document.createElement('li');
         li.className = `book-item ${book.isAvailable ? '' : 'borrowed'}`;
         
+        // Show duration description if book is borrowed
+        const durationText = book.borrowDuration ? `<span style="color: #fab387; font-size: 0.8rem;">⏳ Due in ${book.borrowDuration} days</span>` : '';
+
         li.innerHTML = `
             <div>
                 <strong>${book.title}</strong> <br>
-                <small>by ${book.author}</small>
+                <small>by ${book.author}</small> <br>
+                ${durationText}
             </div>
             <div class="book-actions">
-                <button class="${book.isAvailable ? 'btn-borrow' : 'btn-return'}" onclick="handleStatus('${book.id}')">
+                <button class="${book.isAvailable ? 'btn-borrow' : 'btn-return'}" onclick="handleStatus('${book.id}', ${book.isAvailable})">
                     ${book.isAvailable ? 'Borrow' : 'Return'}
                 </button>
                 <button class="btn-delete" onclick="handleDelete('${book.id}')">Delete</button>
@@ -129,14 +136,52 @@ searchInput.addEventListener('input', () => {
     renderUI();
 });
 
-window.handleStatus = (id) => {
-    myLibrary.toggleAvailability(id);
-    renderUI();
+
+// MODAL ROUTING CONTROLLERS
+
+// Global Modal Utility Closers
+window.closeModal = (modalId) => {
+    document.getElementById(modalId).classList.remove('active');
 };
 
+// Intercept Delete Click Event
 window.handleDelete = (id) => {
-    myLibrary.removeBook(id);
-    renderUI();
+    activeBookIdForDelete = id; // Store ID temporarily
+    document.getElementById('delete-modal').classList.add('active'); // Pop modal open
 };
 
+// Handle Confirmation Click inside Delete Modal
+document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+    if (activeBookIdForDelete) {
+        myLibrary.removeBook(activeBookIdForDelete);
+        activeBookIdForDelete = null;
+        closeModal('delete-modal');
+        renderUI();
+    }
+});
+
+// Intercept Borrow/Return Click Event
+window.handleStatus = (id, isCurrentAvailable) => {
+    if (isCurrentAvailable) {
+        // If it's available, show options popup for duration
+        activeBookIdForBorrow = id;
+        document.getElementById('borrow-modal').classList.add('active');
+    } else {
+        // If returning it, process status toggle instantly without asking questions
+        myLibrary.toggleAvailability(id);
+        renderUI();
+    }
+};
+
+// Handle Duration Button Select Event
+window.submitBorrowDuration = (days) => {
+    if (activeBookIdForBorrow) {
+        myLibrary.toggleAvailability(activeBookIdForBorrow, days);
+        activeBookIdForBorrow = null;
+        closeModal('borrow-modal');
+        renderUI();
+    }
+};
+
+// Initial setup engine run
 renderUI();

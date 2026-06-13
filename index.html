@@ -37,6 +37,29 @@
                 </ul>
         </div>
 
+        <div id="delete-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this book?</p>
+            <div class="modal-actions">
+                <button id="confirm-delete-btn" class="btn-danger-modal">Yes, Delete</button>
+                <button onclick="closeModal('delete-modal')" class="btn-cancel-modal">No, Keep It</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="borrow-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Select Borrow Duration</h3>
+            <p>For how many days would you like to borrow this book?</p>
+            <div class="modal-actions-column">
+                <button onclick="submitBorrowDuration(7)" class="btn-duration">🗓️ 1 Week (7 Days)</button>
+                <button onclick="submitBorrowDuration(14)" class="btn-duration">🗓️ 2 Weeks (14 Days)</button>
+                <button onclick="closeModal('borrow-modal')" class="btn-cancel-modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
