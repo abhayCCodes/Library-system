@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Library System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>📚 Personal Library System</h1>
+        
+        <div class="stats-panel">
+            <div>Total: <span id="stat-total">0</span></div>
+            <div>Available: <span id="stat-available">0</span></div>
+            <div>Borrowed: <span id="stat-borrowed">0</span></div>
+        </div>
+
+        <div class="form-section">
+            <h3>Add a New Book</h3>
+            <div class="input-group">
+                <input type="text" id="book-title" placeholder="Book Title..." autocomplete="off">
+                <input type="text" id="book-author" placeholder="Author Name..." autocomplete="off">
+                <button id="add-btn">Add Book</button>
+            </div>
+        </div>
+
+        <div class="library-section">
+            <h3>Library Catalogue</h3>
+            <ul id="books-list" class="books-list">
+                </ul>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
