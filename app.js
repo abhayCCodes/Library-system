@@ -177,5 +177,5 @@ window.confirmBorrowDuration = (days) => {
     }
 };
 
-// Fire engine sequence directly on initial window load mapping
+
 fetchBooks();
