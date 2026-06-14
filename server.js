@@ -6,15 +6,15 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ==========================================
+
 // MIDDLEWARE CONFIGURATION
-// ==========================================
+
 app.use(cors());
 app.use(express.json()); // Allows server to read incoming JSON packages
 
-// ==========================================
+
 // MONGODB DATABASE CONNECTION LAYER
-// ==========================================
+
 // Connects to your remote cloud database cluster using variable keys hidden in your .env file
 // Connects to a temporary test database online
 const directUri = 'mongodb+srv://librarySystem:librarySystem16@cluster0.vwzq7ea.mongodb.net/library_system?retryWrites=true&w=majority';
@@ -33,9 +33,9 @@ const bookSchema = new mongoose.Schema({
 
 const BookModel = mongoose.model('Book', bookSchema);
 
-// ==========================================
+
 // API ROUTING ENDPOINTS (CRUD Actions)
-// ==========================================
+
 
 // 1. GET: Fetch all books stored in the cloud database
 app.get('/api/books', async (req, res) => {
@@ -86,7 +86,7 @@ app.delete('/api/books/:id', async (req, res) => {
     }
 });
 
-// Add this to the very bottom of server.js if it isn't there
+
 app.listen(PORT, () => {
     console.log(`📡 Backend Gateway Gateway Active on Port ${PORT}`);
 });
