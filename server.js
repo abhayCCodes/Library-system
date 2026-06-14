@@ -86,3 +86,7 @@ app.delete('/api/books/:id', async (req, res) => {
     }
 });
 
+// Add this to the very bottom of server.js if it isn't there
+app.listen(PORT, () => {
+    console.log(`📡 Backend Gateway Gateway Active on Port ${PORT}`);
+});
